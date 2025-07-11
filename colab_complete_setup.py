@@ -82,6 +82,60 @@ def get_public_url():
         print(f"❌ Server not running: {e}")
         return False
 
+def monitor_progress():
+    """Monitor transcription progress."""
+    print("🔍 Monitoring Transcription Progress")
+    print("=" * 50)
+    
+    # Check database for jobs
+    try:
+        import sqlite3
+        conn = sqlite3.connect('transcription.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM transcription_jobs ORDER BY created_at DESC LIMIT 5")
+        jobs = cursor.fetchall()
+        
+        if jobs:
+            print("📊 Recent Transcription Jobs:")
+            for job in jobs:
+                job_id, audio_file_id, status, progress, config, created_at, completed_at, error = job[:8]
+                print(f"  Job ID: {job_id}, Status: {status}, Progress: {progress}%")
+                if error:
+                    print(f"    Error: {error}")
+        else:
+            print("❌ No transcription jobs found")
+            
+    except Exception as e:
+        print(f"❌ Database error: {e}")
+    
+    # Check output files
+    print("\n📁 Output Files:")
+    if os.path.exists('transcript_output'):
+        files = os.listdir('transcript_output')
+        if files:
+            for file in files:
+                file_path = os.path.join('transcript_output', file)
+                size = os.path.getsize(file_path) / 1024  # KB
+                print(f"  - {file} ({size:.1f} KB)")
+        else:
+            print("  No output files yet")
+    else:
+        print("  transcript_output directory doesn't exist")
+    
+    # Check uploads
+    print("\n📂 Uploaded Files:")
+    if os.path.exists('uploads'):
+        files = os.listdir('uploads')
+        if files:
+            for file in files:
+                file_path = os.path.join('uploads', file)
+                size = os.path.getsize(file_path) / (1024*1024)  # MB
+                print(f"  - {file} ({size:.1f} MB)")
+        else:
+            print("  No uploaded files")
+    else:
+        print("  uploads directory doesn't exist")
+
 def main():
     """Main setup function."""
     print("🚀 Complete Transcription Platform Setup for Colab")
@@ -127,12 +181,44 @@ def main():
     # Setup HuggingFace token
     setup_hf_token()
     
+    # Show initial status
+    print("\n🔍 Initial Status Check:")
+    monitor_progress()
+    
     print("\n🎉 Setup completed successfully!")
     print("\n📋 Next steps:")
     print("1. Upload an audio file using: files.upload()")
     print("2. Move file to uploads directory")
     print("3. Start the server with: !python src/main.py")
-    print("4. Get public URL using the instructions above")
+    print("4. Get public URL using: !python get_public_url.py")
+    print("5. Monitor progress using: !python -c \"from colab_complete_setup import monitor_progress; monitor_progress()\"")
+    
+    print("\n🔍 Quick Monitoring Commands (run in separate cells):")
+    print("# Monitor progress:")
+    print("!python -c \"from colab_complete_setup import monitor_progress; monitor_progress()\"")
+    
+    print("\n# Check server status:")
+    print("import requests")
+    print("response = requests.get('http://127.0.0.1:8000/health')")
+    print("print(f'Server Status: {response.status_code}')")
+    
+    print("\n# Check transcription jobs:")
+    print("import sqlite3")
+    print("conn = sqlite3.connect('transcription.db')")
+    print("cursor = conn.cursor()")
+    print("cursor.execute('SELECT * FROM transcription_jobs ORDER BY created_at DESC LIMIT 5')")
+    print("jobs = cursor.fetchall()")
+    print("for job in jobs:")
+    print("    print(f'Job ID: {job[0]}, Status: {job[2]}, Progress: {job[3]}')")
+    
+    print("\n# Check output files:")
+    print("import os")
+    print("if os.path.exists('transcript_output'):")
+    print("    files = os.listdir('transcript_output')")
+    print("    for file in files:")
+    print("        print(f'- {file}')")
+    print("else:")
+    print("    print('No output files yet')")
     
     return True
 
