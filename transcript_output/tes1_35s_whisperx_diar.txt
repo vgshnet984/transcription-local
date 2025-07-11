@@ -1,0 +1,13 @@
+Transcription Results
+==================================================
+File: examples\sample_audio\tes1_first_35s.wav
+Engine: whisperx
+Model: large-v3
+Device: cuda
+Language: en
+Confidence: 50.00%
+Processing Time: 28.77s
+Speaker Diarization: True
+==================================================
+
+[SPEAKER_01] dates i'm pulling it for you now so before this call in so i'll share it across maybe you could check it um maybe for time being i'll share the eti it is for you to check whether you received the material and then posted actually actually uh after 19 is not there [SPEAKER_01] So that's why I'm asking you if you share immediately, I will check with L3 team. [SPEAKER_00] Okay, just check whether you receive their material. [SPEAKER_00] Post it and share the production mapping, okay, ETID, what's the corresponding production ETID. [SPEAKER_00] Yes, yes, yes, I'm checking with L3 team.

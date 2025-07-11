@@ -1,0 +1,39 @@
+﻿# Core ML/AI Framework
+torch
+torchaudio
+torchvision
+
+# Audio Processing
+librosa
+pydub
+scipy
+numpy
+soundfile
+
+# Transcription Engines
+openai-whisper
+faster-whisper
+whisperx
+
+# Speaker Diarization
+pyannote.audio
+
+# Web Framework
+flask
+flask-cors
+fastapi
+uvicorn
+python-multipart
+
+# Database
+sqlalchemy
+
+# Utilities
+requests
+tqdm
+python-dotenv
+transformers
+accelerate
+loguru
+pydantic
+pydantic-settings

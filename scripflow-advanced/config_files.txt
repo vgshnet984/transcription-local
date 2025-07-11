@@ -1,0 +1,349 @@
+# config/development.yaml
+environment: development
+debug: true
+log_level: DEBUG
+
+# Database configuration
+database:
+  url: postgresql://transcription_user:transcription_pass@localhost:5432/transcription_db
+  pool_size: 10
+  max_overflow: 20
+  echo: true
+
+# Redis configuration
+redis:
+  url: redis://localhost:6379
+  db: 0
+  password: null
+  decode_responses: true
+
+# File storage
+storage:
+  backend: local
+  local:
+    upload_path: ./uploads
+    models_path: ./models
+  max_file_size: 500000000  # 500MB
+  allowed_extensions: [wav, mp3, m4a, flac, aac, ogg]
+
+# ML Models
+ml:
+  whisper:
+    model_size: tiny
+    device: cpu
+    compute_type: int8
+  pyannote:
+    auth_token: null
+    device: cpu
+  speaker_identification:
+    similarity_threshold: 0.8
+    confidence_threshold: 0.7
+
+# API configuration
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 1
+  reload: true
+  cors_origins:
+    - http://localhost:3000
+    - http://localhost:8080
+
+# Security
+security:
+  secret_key: dev-secret-key-change-in-production
+  jwt:
+    secret_key: dev-jwt-secret-key
+    algorithm: HS256
+    expiration_hours: 24
+  
+# Processing
+processing:
+  max_concurrent_jobs: 5
+  job_timeout: 3600
+  enable_gpu: false
+  audio_processing:
+    target_sample_rate: 16000
+    noise_reduction: 0.5
+    enable_vad: true
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: false
+  sentry:
+    dsn: null
+    environment: development
+
+---
+# config/production.yaml
+environment: production
+debug: false
+log_level: INFO
+
+# Database configuration
+database:
+  url: ${DATABASE_URL}
+  pool_size: 20
+  max_overflow: 40
+  echo: false
+
+# Redis configuration
+redis:
+  url: ${REDIS_URL}
+  db: 0
+  password: ${REDIS_PASSWORD}
+  decode_responses: true
+
+# File storage
+storage:
+  backend: s3
+  s3:
+    bucket_name: ${S3_BUCKET_NAME}
+    region: ${AWS_REGION}
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  max_file_size: 1000000000  # 1GB
+  allowed_extensions: [wav, mp3, m4a, flac, aac, ogg, wma]
+
+# ML Models
+ml:
+  whisper:
+    model_size: base
+    device: cuda
+    compute_type: float16
+  pyannote:
+    auth_token: ${PYANNOTE_AUTH_TOKEN}
+    device: cuda
+  speaker_identification:
+    similarity_threshold: 0.85
+    confidence_threshold: 0.75
+
+# API configuration
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  reload: false
+  cors_origins:
+    - https://app.transcription-platform.com
+    - https://transcription-platform.com
+
+# Security
+security:
+  secret_key: ${SECRET_KEY}
+  jwt:
+    secret_key: ${JWT_SECRET_KEY}
+    algorithm: HS256
+    expiration_hours: 24
+
+# Processing
+processing:
+  max_concurrent_jobs: 50
+  job_timeout: 7200
+  enable_gpu: true
+  audio_processing:
+    target_sample_rate: 16000
+    noise_reduction: 0.8
+    enable_vad: true
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  requests_per_minute: 100
+  burst_limit: 200
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+  sentry:
+    dsn: ${SENTRY_DSN}
+    environment: production
+    traces_sample_rate: 0.1
+
+# Webhooks
+webhooks:
+  timeout_seconds: 30
+  retry_attempts: 3
+  retry_delay_seconds: 5
+
+---
+# config/testing.yaml
+environment: testing
+debug: true
+log_level: DEBUG
+
+# Database configuration
+database:
+  url: postgresql://test_user:test_pass@localhost:5432/test_transcription_db
+  pool_size: 5
+  max_overflow: 10
+  echo: true
+
+# Redis configuration
+redis:
+  url: redis://localhost:6379
+  db: 1  # Use different db for testing
+  password: null
+  decode_responses: true
+
+# File storage
+storage:
+  backend: local
+  local:
+    upload_path: ./test_uploads
+    models_path: ./test_models
+  max_file_size: 100000000  # 100MB for testing
+  allowed_extensions: [wav, mp3, m4a, flac]
+
+# ML Models
+ml:
+  whisper:
+    model_size: tiny  # Fastest for testing
+    device: cpu
+    compute_type: int8
+  pyannote:
+    auth_token: null
+    device: cpu
+  speaker_identification:
+    similarity_threshold: 0.7
+    confidence_threshold: 0.6
+
+# API configuration
+api:
+  host: 127.0.0.1
+  port: 8001
+  workers: 1
+  reload: false
+  cors_origins:
+    - http://localhost:3000
+
+# Security
+security:
+  secret_key: test-secret-key
+  jwt:
+    secret_key: test-jwt-secret-key
+    algorithm: HS256
+    expiration_hours: 1  # Short expiration for testing
+
+# Processing
+processing:
+  max_concurrent_jobs: 2
+  job_timeout: 300  # 5 minutes
+  enable_gpu: false
+  audio_processing:
+    target_sample_rate: 16000
+    noise_reduction: 0.3
+    enable_vad: true
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: false
+  sentry:
+    dsn: null
+    environment: testing
+
+---
+# config/logging.yaml
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+  
+  detailed:
+    format: "%(asctime)s [%(levelname)s] %(name)s [%(filename)s:%(lineno)d] %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+  
+  json:
+    format: '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s", "filename": "%(filename)s", "lineno": %(lineno)d}'
+    datefmt: "%Y-%m-%dT%H:%M:%S"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: standard
+    stream: ext://sys.stdout
+  
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: detailed
+    filename: logs/app.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+  
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: logs/error.log
+    maxBytes: 10485760
+    backupCount: 5
+  
+  json_file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/app.json
+    maxBytes: 10485760
+    backupCount: 5
+
+loggers:
+  # Root logger
+  "":
+    level: INFO
+    handlers: [console, file, error_file]
+    propagate: false
+  
+  # Application loggers
+  src:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+  
+  src.transcription:
+    level: DEBUG
+    handlers: [console, file, json_file]
+    propagate: false
+  
+  src.speakers:
+    level: DEBUG
+    handlers: [console, file, json_file]
+    propagate: false
+  
+  src.audio:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  # Third-party loggers
+  uvicorn:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  uvicorn.access:
+    level: INFO
+    handlers: [file]
+    propagate: false
+  
+  celery:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  sqlalchemy.engine:
+    level: WARNING
+    handlers: [file]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file, error_file]

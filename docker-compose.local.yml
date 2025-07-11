@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  transcription-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./transcription.db:/app/transcription.db
+    environment:
+      - DATABASE_URL=sqlite:///./transcription.db
+      - UPLOAD_DIR=./uploads
+      - MODELS_DIR=./models
+      - LOGS_DIR=./logs
+      - WHISPER_MODEL=tiny
+      - LANGUAGE=en
+      - DEVICE=cpu
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      - MAX_FILE_SIZE=100MB
+      - SUPPORTED_FORMATS=wav,mp3,m4a,flac
+      - SAMPLE_RATE=16000
+      - ENABLE_SPEAKER_DIARIZATION=false
+      - LOG_LEVEL=INFO
+      - LOG_FILE=logs/app.log
+      - SECRET_KEY=your-secret-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - MAX_CONCURRENT_JOBS=5
+      - JOB_TIMEOUT=1800
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for enhanced job processing
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - enhanced
+
+volumes:
+  redis_data: 

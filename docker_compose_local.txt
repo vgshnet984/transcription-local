@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # PostgreSQL (optional upgrade from SQLite)
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: transcription_db
+      POSTGRES_USER: transcription_user
+      POSTGRES_PASSWORD: local_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcription_user -d transcription_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: ["database"]
+
+  # Redis (optional for background jobs)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: ["queue"]
+
+  # Main API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "8000:8000"
+    environment:
+      # Use SQLite by default (uncomment PostgreSQL line for database upgrade)
+      - DATABASE_URL=sqlite:///./transcription.db
+      # - DATABASE_URL=postgresql://transcription_user:local_password@postgres:5432/transcription_db
+      - REDIS_URL=redis://redis:6379
+      - ENVIRONMENT=local
+      - STORAGE_BACKEND=local
+      - UPLOAD_PATH=/app/uploads
+      - MODELS_PATH=/app/models
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - ./examples:/app/examples
+      - ./logs:/app/logs
+      - ./transcription.db:/app/transcription.db
+    # Uncomment to use PostgreSQL
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Worker (optional - for background processing)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    environment:
+      - DATABASE_URL=sqlite:///./transcription.db
+      - REDIS_URL=redis://redis:6379
+      - ENVIRONMENT=local
+      - STORAGE_BACKEND=local
+      - UPLOAD_PATH=/app/uploads
+      - MODELS_PATH=/app/models
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - ./transcription.db:/app/transcription.db
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A src.jobs.celery_app worker --loglevel=info
+    profiles: ["worker"]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# Usage Examples:
+# 
+# Basic setup (API only with SQLite):
+# docker-compose -f docker-compose.local.yml up api
+#
+# With PostgreSQL database:
+# docker-compose -f docker-compose.local.yml --profile database up
+#
+# With Redis queue:
+# docker-compose -f docker-compose.local.yml --profile queue up
+#
+# With background worker:
+# docker-compose -f docker-compose.local.yml --profile worker up
+#
+# Full setup:
+# docker-compose -f docker-compose.local.yml --profile database --profile queue --profile worker up

@@ -1,0 +1,409 @@
+# Instructions to the AI
+
+When the user asks to resume build or work on the transcription project, review this checklist, the General Notes, and the Project Context & Inputs. Identify the next unchecked item, gather context from the listed files, and proceed to implement the next step, keeping all documentation, scripts, and tests up to date. After satisfactory implementation of the requested feature, check it off in the list below.
+
+> **CRITICAL RULE: BASIC UI/BACKEND PRESERVATION**
+> **NEVER break the basic UI (http://localhost:8000/) or its backend functionality.** 
+> - The basic UI must always work for file upload and transcription
+> - All API endpoints must remain functional
+> - Database operations must continue to work
+> - Before making any changes, verify the basic UI still works
+> - After making changes, test both basic UI and Scripflow UI
+> - If changes break basic functionality, revert immediately and fix
+
+> **Note:**
+> Persistent project rules (audio processing constraints, transcription accuracy requirements, speaker identification protocols) are now enforced in `.cursor/rules/`. Always review those rules for up-to-date, enforced project policies.
+
+## Transcription Platform Build Checklist
+
+### Project Context & Inputs
+
+Before working on any checklist item, review the following files to understand the domain, requirements, and architecture:
+
+- `README.md`: High-level project overview and transcription goals
+- `architecture.md`: System architecture and component design
+- `audio-processing.md`: Audio processing pipeline and requirements
+- `speaker-identification.md`: Speaker diarization and identification specs
+- `api-specification.md`: API endpoints and data contracts
+- `deployment.md`: Local development and deployment instructions (LOCAL-FIRST APPROACH)
+- `config_files.txt: Configuration files for different environments
+- `examples/`: Sample audio files and expected transcription outputs
+- Source code and tests in `src/` and `tests/`
+
+**IMPORTANT**: This project prioritizes LOCAL DEVELOPMENT first. All features should work on a local machine without cloud dependencies. Cloud deployment options are provided but optional.
+
+These files provide the context and reasoning behind each checklist item. Always consult them before starting new work.
+
+This file is the living, actionable checklist for building out the transcription platform. Each item is a feature-level task, with space for constraints/acceptance criteria. Check off items as you complete them. Add constraints/notes as needed.
+
+---
+
+### Infrastructure & Core Setup
+
+- [x] Set up project structure and environment (LOCAL-FIRST)
+  - Constraints:
+    - Python 3.9+ with virtual environment
+    - SQLite database for local development (no PostgreSQL required initially)
+    - Local file storage (no cloud storage required)
+    - Environment-specific configuration management
+    - Logging and error handling framework
+    - Optional Docker support for enhanced local development
+- [ ] Configure audio processing dependencies (LOCAL SETUP)
+  - Constraints:
+    - FFmpeg installation and audio format support
+    - librosa for audio analysis
+    - pydub for audio manipulation
+    - scipy for signal processing
+    - All dependencies available via pip (no complex system dependencies)
+- [ ] Set up machine learning environment (LOCAL MODELS)
+  - Constraints:
+    - PyTorch/TensorFlow for deep learning models
+    - transformers library for pre-trained models
+    - pyannote.audio for speaker diarization (optional)
+    - whisper for speech-to-text (downloaded locally)
+    - Models stored locally in ./models directory
+- [ ] Configure local storage and processing
+  - Constraints:
+    - Local file system for audio file storage (./uploads directory)
+    - SQLite database for development (with option to upgrade to PostgreSQL)
+    - Optional: Redis for enhanced job processing (via Docker)
+    - Local model storage and caching (./models directory)
+- [ ] Implement monitoring and logging
+  - Constraints:
+    - Application performance monitoring
+    - Audio processing metrics
+    - Error tracking and alerting
+    - Processing time and accuracy metrics
+
+---
+
+### Audio Processing Pipeline
+
+- [ ] Implement audio file validation and preprocessing
+  - Constraints:
+    - Support for common formats (WAV, MP3, M4A, FLAC)
+    - Audio quality validation (sample rate, bit depth)
+    - Noise reduction and audio enhancement options
+    - File size and duration limits
+    - Metadata extraction (duration, channels, sample rate)
+- [ ] Implement audio segmentation
+  - Constraints:
+    - Voice Activity Detection (VAD)
+    - Silence detection and removal
+    - Chunk audio into optimal segments for processing
+    - Overlap handling for continuous speech
+- [ ] Implement audio format conversion
+  - Constraints:
+    - Convert to optimal format for transcription models
+    - Maintain audio quality during conversion
+    - Support batch processing
+    - Progress tracking for large files
+
+---
+
+### Speech-to-Text Engine
+
+- [ ] Implement core transcription engine
+  - Constraints:
+    - Integration with Whisper, Google Speech-to-Text, or Azure Speech
+    - Support for multiple languages
+    - Confidence scoring for transcribed text
+    - Timestamp alignment with audio
+    - Handle multiple audio channels
+- [ ] Implement transcription accuracy optimization
+  - Constraints:
+    - Custom vocabulary support
+    - Domain-specific language models
+    - Post-processing for common transcription errors
+    - Quality assessment metrics
+- [ ] Implement real-time transcription support
+  - Constraints:
+    - Streaming audio processing
+    - Low-latency transcription
+    - WebSocket support for live updates
+    - Buffer management for continuous streams
+
+---
+
+### Speaker Identification & Diarization
+
+- [ ] Implement speaker diarization system
+  - Constraints:
+    - Integration with pyannote.audio
+    - Automatic speaker count detection
+    - Speaker change point detection
+    - Overlapping speech handling
+    - Support for 2-10+ speakers
+- [ ] Implement speaker identification
+  - Constraints:
+    - Speaker embedding generation
+    - Speaker clustering and labeling
+    - Persistent speaker IDs across sessions
+    - Speaker verification capabilities
+- [ ] Implement speaker-aware transcription
+  - Constraints:
+    - Combine diarization with transcription
+    - Speaker-labeled transcript output
+    - Timeline synchronization
+    - Speaker confidence scores
+    - Handle speaker overlap and interruptions
+
+---
+
+### API & Backend Services
+
+- [ ] Implement file upload and management API
+  - Constraints:
+    - RESTful API design
+    - Secure file upload with validation
+    - Progress tracking for uploads
+    - File metadata storage
+    - Authentication and authorization
+- [ ] Implement transcription job management API
+  - Constraints:
+    - Async job processing with status tracking
+    - Priority queue management
+    - Job cancellation and retry logic
+    - Batch processing support
+    - Webhook notifications for job completion
+- [ ] Implement transcription retrieval API
+  - Constraints:
+    - Multiple output formats (JSON, SRT, VTT, TXT)
+    - Pagination for long transcriptions
+    - Search within transcriptions
+    - Export capabilities
+    - Version control for edits
+- [ ] Implement speaker management API
+  - Constraints:
+    - Speaker profile CRUD operations
+    - Speaker voice sample management
+    - Speaker identification training
+    - Speaker statistics and analytics
+
+---
+
+### Frontend & User Interface
+
+- [ ] Implement file upload interface
+  - Constraints:
+    - Drag-and-drop file upload
+    - Progress indication and validation
+    - Multiple file selection
+    - Audio preview functionality
+    - File format conversion options
+- [ ] Implement transcription dashboard
+  - Constraints:
+    - Job status monitoring
+    - Real-time progress updates
+    - Transcription preview and editing
+    - Speaker identification visualization
+    - Export and download options
+- [ ] Implement transcription editor
+  - Constraints:
+    - Text editing with timestamp sync
+    - Audio playback integration
+    - Speaker label editing
+    - Keyboard shortcuts for efficiency
+    - Auto-save functionality
+- [ ] Implement speaker management interface
+  - Constraints:
+    - Speaker profile management
+    - Voice sample upload and training
+    - Speaker identification accuracy metrics
+    - Bulk speaker operations
+
+---
+
+### Quality & Accuracy Features
+
+- [ ] Implement transcription quality assessment
+  - Constraints:
+    - Word Error Rate (WER) calculation
+    - Confidence scoring visualization
+    - Quality metrics dashboard
+    - Automated quality checks
+- [ ] Implement post-processing improvements
+  - Constraints:
+    - Grammar and punctuation correction
+    - Capitalization and formatting
+    - Custom dictionary and terminology
+    - Abbreviation expansion
+- [ ] Implement human review workflow
+  - Constraints:
+    - Manual correction interface
+    - Review assignment and tracking
+    - Quality assurance metrics
+    - Reviewer performance analytics
+
+---
+
+### Integration & Advanced Features
+
+- [ ] Implement webhook and callback system
+  - Constraints:
+    - Configurable webhook endpoints
+    - Event-driven notifications
+    - Retry mechanism for failed callbacks
+    - Payload customization
+- [ ] Implement batch processing capabilities
+  - Constraints:
+    - Bulk file processing
+    - Scheduled processing jobs
+    - Resource optimization for large batches
+    - Progress reporting for batch operations
+- [ ] Implement analytics and reporting
+  - Constraints:
+    - Processing time analytics
+    - Accuracy metrics tracking
+    - Usage statistics and billing
+    - Performance optimization insights
+- [ ] Implement integration APIs
+  - Constraints:
+    - Third-party service integrations
+    - CRM and workflow tool connections
+    - Cloud storage provider sync
+    - Meeting platform integrations (Zoom, Teams)
+
+---
+
+### Testing & Quality Assurance
+
+- [ ] Implement unit tests for core components
+  - Constraints:
+    - >90% code coverage for business logic
+    - Audio processing pipeline tests
+    - Transcription accuracy tests
+    - Speaker identification tests
+- [ ] Implement integration tests
+  - Constraints:
+    - End-to-end transcription workflows
+    - API endpoint testing
+    - File processing pipeline tests
+    - Database integration tests
+- [ ] Implement performance testing
+  - Constraints:
+    - Load testing for concurrent processing
+    - Memory and CPU usage optimization
+    - Processing time benchmarks
+    - Scalability testing
+- [ ] Implement accuracy benchmarking
+  - Constraints:
+    - Test dataset with ground truth
+    - WER and speaker identification accuracy
+    - Cross-language performance testing
+    - Domain-specific accuracy validation
+
+---
+
+### Deployment & Operations
+
+- [ ] Implement containerized deployment
+  - Constraints:
+    - Docker containers for all services
+    - Kubernetes/Docker Compose orchestration
+    - Environment-specific configurations
+    - Health checks and monitoring
+- [ ] Implement CI/CD pipeline
+  - Constraints:
+    - Automated testing and validation
+    - Staged deployment process
+    - Rollback capabilities
+    - Performance regression detection
+- [ ] Implement monitoring and alerting
+  - Constraints:
+    - Application and infrastructure monitoring
+    - Custom metrics for transcription quality
+    - Alert thresholds and escalation
+    - Log aggregation and analysis
+- [ ] Implement backup and disaster recovery
+  - Constraints:
+    - Data backup strategies
+    - Service recovery procedures
+    - Multi-region deployment options
+    - Business continuity planning
+
+---
+
+### Documentation & Maintenance
+
+- [ ] Create comprehensive documentation
+  - Constraints:
+    - API documentation with examples
+    - User guides and tutorials
+    - Developer setup instructions
+    - Troubleshooting guides
+- [ ] Implement maintenance tools
+  - Constraints:
+    - Database maintenance scripts
+    - Log rotation and cleanup
+    - Performance monitoring tools
+    - Automated health checks
+
+---
+
+## Project Implementation Constraints
+
+### Local-First Development Approach
+
+- All features must work on a local machine without cloud dependencies
+- Use SQLite for initial database (PostgreSQL optional via Docker)
+- Local file storage in ./uploads directory
+- Models downloaded and cached locally in ./models directory
+- Optional cloud deployment features documented but not required for core functionality
+
+### Database Constraints
+
+- Start with SQLite for development (single file database)
+- Design models to work with both SQLite and PostgreSQL
+- Include migration support for upgrading to PostgreSQL later
+- All data stored locally unless explicitly choosing cloud deployment
+
+### Transcription Accuracy Requirements
+
+- Target Word Error Rate (WER) of <10% for clear audio
+- Implement confidence scoring for all transcribed segments
+- Support for custom vocabularies and domain-specific terms
+- Provide multiple transcription engine options for comparison
+- Maintain timestamp accuracy within 100ms
+
+### Speaker Identification Protocols
+
+- Use pyannote.audio as the primary speaker diarization library
+- Support 2-20 speakers with automatic detection
+- Implement speaker clustering with persistence across sessions
+- Provide speaker confidence scores and validation
+- Handle overlapping speech and speaker interruptions gracefully
+
+### Performance Requirements
+
+- Process audio files at >2x real-time speed
+- Support concurrent processing of multiple files
+- Implement efficient memory management for large files
+- Provide real-time progress updates for long processes
+- Scale horizontally for increased load
+
+### Security and Privacy
+
+- Implement secure file upload and storage
+- Support file encryption at rest and in transit
+- Provide data retention and deletion policies
+- Implement user authentication and authorization
+- Comply with data privacy regulations (GDPR, CCPA)
+
+### Testing Standards
+
+- Maintain >90% unit test coverage
+- Implement comprehensive integration tests
+- Create automated accuracy benchmarking
+- Performance testing for scalability validation
+- Security testing for vulnerability assessment
+
+---
+
+### Notes
+
+- Add constraints/acceptance criteria under each item as needed
+- Update this checklist as requirements evolve
+- Use this as the single source of truth for project progress
+- Regularly review and update accuracy benchmarks
+- Monitor processing performance and optimize as needed

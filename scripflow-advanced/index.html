@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripflow - Advanced Transcription Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/scripflow/css/main.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8f4f8 50%, #d4e6f1 100%);
+        }
+        .sidebar-bg {
+            background: linear-gradient(180deg, #f0f0f5 0%, #e8e8f0 100%);
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+        }
+        .drag-active {
+            border: 2px dashed #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .win11-window {
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .win11-header {
+            background: #f3f3f3;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px 12px 0 0;
+            height: 32px;
+        }
+        .win11-controls {
+            display: flex;
+            height: 100%;
+        }
+        .win11-control {
+            width: 46px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
+        .win11-control:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .win11-control.close:hover {
+            background: #e81123;
+            color: white;
+        }
+        .win11-control.maximize:last-child {
+            border-radius: 0 12px 0 0;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        .waveform {
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+            height: 4px;
+            border-radius: 2px;
+            animation: wave 2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.5); }
+        }
+        .speaker-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .speaker-1 { background: #dbeafe; color: #1e40af; }
+        .speaker-2 { background: #fef3c7; color: #92400e; }
+        .speaker-3 { background: #dcfce7; color: #166534; }
+        .speaker-4 { background: #fce7f3; color: #be185d; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    
+    <!-- Screen 1: Upload & Features -->
+    <div id="screen-1" class="screen active min-h-screen">
+        <div class="win11-window mx-auto mt-8 max-w-7xl bg-white">
+            <!-- Windows 11 style header -->
+            <div class="win11-header">
+                <div class="flex items-center gap-4 px-4">
+                    <div class="text-sm font-medium text-gray-700">Scripflow - Transcription Platform</div>
+                </div>
+                <div class="flex items-center gap-4 px-4">
+                    <select id="language-select" class="px-3 py-1 bg-white border border-gray-300 rounded text-sm">
+                        <option value="en">English</option>
+                        <option value="ta">Tamil</option>
+                        <option value="sa">Sanskrit</option>
+                        <option value="hi">Hindi</option>
+                        <option value="te">Telugu</option>
+                        <option value="kn">Kannada</option>
+                        <option value="ml">Malayalam</option>
+                        <option value="bn">Bengali</option>
+                        <option value="gu">Gujarati</option>
+                        <option value="mr">Marathi</option>
+                        <option value="pa">Punjabi</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="auto">Auto Detect</option>
+                    </select>
+                    <select id="engine-select" class="px-3 py-1 bg-white border border-gray-300 rounded text-sm">
+                        <option value="faster-whisper">Fast-Whisper (Optimized)</option>
+                        <option value="whisperx">WhisperX (Enhanced)</option>
+                        <option value="parakeet">NVIDIA Parakeet (Fast English)</option>
+                        <option value="whisper">Whisper (Standard)</option>
+                    </select>
+                    <select id="model-select" class="px-3 py-1 bg-white border border-gray-300 rounded text-sm">
+                        <option value="tiny">Tiny (Fastest)</option>
+                        <option value="base" selected>Base (Balanced)</option>
+                        <option value="small">Small (Better)</option>
+                        <option value="medium">Medium (Good)</option>
+                        <option value="large-v3">Large-v3 (Best)</option>
+                    </select>
+                    <button id="settings-btn" class="p-1">
+                        <i class="fas fa-cog text-gray-600"></i>
+                    </button>
+                </div>
+                <div class="win11-controls">
+                    <div class="win11-control">
+                        <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
+                            <rect width="10" height="1"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <rect x="1" y="1" width="8" height="8"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control close">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <line x1="1" y1="1" x2="9" y2="9"/>
+                            <line x1="9" y1="1" x2="1" y2="9"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex h-screen gradient-bg">
+                <!-- Left Sidebar -->
+                <div class="w-64 sidebar-bg border-r border-gray-300 p-4">
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" id="history-search" placeholder="Search History" 
+                                   class="w-full px-3 py-2 pl-8 bg-white rounded border text-sm focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            <i class="fas fa-search absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xs font-medium text-gray-600 mb-3">Today</h3>
+                        <div id="history-list" class="space-y-2">
+                            <!-- History items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="flex-1 p-8">
+                    <!-- URL Input -->
+                    <div class="mb-6">
+                        <input type="text" id="url-input" placeholder="Enter YouTube, Audio or Video File URL..." 
+                               class="w-full px-4 py-3 text-base bg-white rounded-lg border border-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+                    </div>
+                    
+                    <!-- Feature Grid -->
+                    <div class="grid grid-cols-4 gap-6 mb-8">
+                        <!-- Row 1 -->
+                        <button id="open-files-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4">
+                            <i class="fas fa-download text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Open Files...</span>
+                        </button>
+                        <button id="new-recording-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4">
+                            <div class="relative">
+                                <i class="fas fa-microphone text-3xl text-gray-700"></i>
+                                <div class="absolute -right-2 -top-1">
+                                    <div class="flex gap-1">
+                                        <div class="w-1 h-3 bg-blue-500 rounded animate-pulse"></div>
+                                        <div class="w-1 h-4 bg-blue-500 rounded animate-pulse" style="animation-delay: 0.1s"></div>
+                                        <div class="w-1 h-2 bg-blue-500 rounded animate-pulse" style="animation-delay: 0.2s"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-800">New Recording</span>
+                        </button>
+                        <button id="record-meeting-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4 relative">
+                            <i class="fas fa-video text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Record Meeting</span>
+                            <span class="absolute top-2 right-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded">BETA</span>
+                        </button>
+                        <button id="batch-transcription-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4">
+                            <i class="fas fa-play text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Batch Transcription</span>
+                        </button>
+                        
+                        <!-- Row 2 -->
+                        <button id="record-app-audio-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4 relative">
+                            <i class="fas fa-desktop text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Record App Audio</span>
+                            <span class="absolute top-2 right-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded">BETA</span>
+                        </button>
+                        <button id="dictation-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4 relative">
+                            <div class="relative">
+                                <span class="text-3xl font-bold text-gray-700">A</span>
+                                <i class="fas fa-edit absolute -right-1 -bottom-1 text-lg text-gray-700"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-800">Dictation</span>
+                            <span class="absolute top-2 right-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded">BETA</span>
+                        </button>
+                        <button id="transcribe-podcast-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4 relative">
+                            <i class="fas fa-users text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Transcribe Podcast</span>
+                            <span class="absolute top-2 right-2 bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded">BETA</span>
+                        </button>
+                        <button id="global-btn" class="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4">
+                            <i class="fas fa-th text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Global</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Cloud Transcription -->
+                    <div class="mb-8">
+                        <button id="cloud-transcription-btn" class="w-full bg-white rounded-xl p-8 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-4">
+                            <i class="fas fa-cloud text-3xl text-gray-700"></i>
+                            <span class="text-sm font-medium text-gray-800">Cloud Transcription</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Bottom Tools -->
+                    <div class="grid grid-cols-4 gap-4">
+                        <button id="manage-models-btn" class="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-2">
+                            <i class="fas fa-plus-circle text-lg text-gray-700"></i>
+                            <span class="text-xs font-medium text-gray-800">Manage Models</span>
+                        </button>
+                        <button id="calendar-btn" class="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-2">
+                            <i class="fas fa-calendar text-lg text-gray-700"></i>
+                            <span class="text-xs font-medium text-gray-800">Calendar</span>
+                        </button>
+                        <button id="support-btn" class="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-2">
+                            <i class="fas fa-question-circle text-lg text-gray-700"></i>
+                            <span class="text-xs font-medium text-gray-800">Support</span>
+                        </button>
+                        <button id="download-ios-btn" class="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md hover-lift transition-all duration-200 flex flex-col items-center gap-2">
+                            <i class="fas fa-mobile-alt text-lg text-gray-700"></i>
+                            <span class="text-xs font-medium text-gray-800">Download iOS app</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Drag & Drop Area -->
+                    <div id="drag-drop-area" class="mt-8 text-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors">
+                        <div class="inline-block text-sm text-gray-500 mb-2">Or Drag & Drop Media Files to Transcribe</div>
+                        <div class="text-xs text-gray-400">MP3 • WAV • M4A • MP4 • MPG • OGG • AAC • MOV</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 2: Transcription Progress -->
+    <div id="screen-2" class="screen min-h-screen">
+        <div class="win11-window mx-auto mt-8 max-w-4xl bg-white">
+            <!-- Windows 11 style header -->
+            <div class="win11-header">
+                <div class="flex items-center gap-4 px-4">
+                    <button id="back-to-upload" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Upload
+                    </button>
+                    <div class="text-sm font-medium text-gray-700">Transcription in Progress</div>
+                </div>
+                <div class="win11-controls">
+                    <div class="win11-control">
+                        <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
+                            <rect width="10" height="1"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <rect x="1" y="1" width="8" height="8"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control close">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <line x1="1" y1="1" x2="9" y2="9"/>
+                            <line x1="9" y1="1" x2="1" y2="9"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-8 gradient-bg">
+                <!-- File Info -->
+                <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-music text-2xl text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 id="progress-filename" class="text-lg font-medium text-gray-800">Loading...</h3>
+                            <p id="progress-fileinfo" class="text-sm text-gray-500">Processing...</p>
+                        </div>
+                        <button id="cancel-transcription" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            Cancel
+                        </button>
+                        <button id="check-completed" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            Check Completed
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Ring -->
+                <div class="flex justify-center mb-8">
+                    <div class="relative">
+                        <svg class="progress-ring w-48 h-48" viewBox="0 0 120 120">
+                            <circle class="progress-ring-circle" stroke="#e5e7eb" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                            <circle id="progress-circle" class="progress-ring-circle" stroke="#3b82f6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div id="progress-percentage" class="text-3xl font-bold text-gray-800">0%</div>
+                                <div id="progress-status" class="text-sm text-gray-600">Initializing...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-green-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Elapsed Time</div>
+                                <div id="elapsed-time" class="text-lg font-medium text-gray-800">00:00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-microchip text-blue-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Engine</div>
+                                <div id="progress-engine" class="text-lg font-medium text-gray-800">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-purple-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Speakers</div>
+                                <div id="progress-speakers" class="text-lg font-medium text-gray-800">Detecting...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Status -->
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h4 class="text-lg font-medium text-gray-800 mb-4">Live Status</h4>
+                    <div id="status-log" class="space-y-2 max-h-32 overflow-y-auto">
+                        <div class="flex items-center gap-2 text-sm">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span class="text-gray-600">Initializing transcription engine...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Waveform -->
+                <div class="bg-white rounded-lg p-6 shadow-sm mt-6">
+                    <h4 class="text-lg font-medium text-gray-800 mb-4">Audio Processing</h4>
+                    <div class="flex items-center gap-2">
+                        <div class="waveform w-4"></div>
+                        <div class="waveform w-6"></div>
+                        <div class="waveform w-3"></div>
+                        <div class="waveform w-5"></div>
+                        <div class="waveform w-2"></div>
+                        <div class="waveform w-7"></div>
+                        <div class="waveform w-4"></div>
+                        <div class="waveform w-6"></div>
+                        <div class="waveform w-3"></div>
+                        <div class="waveform w-5"></div>
+                        <div class="waveform w-2"></div>
+                        <div class="waveform w-7"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 3: Completed Transcription -->
+    <div id="screen-3" class="screen min-h-screen">
+        <div class="win11-window mx-auto mt-8 max-w-7xl bg-white">
+            <!-- Windows 11 style header -->
+            <div class="win11-header">
+                <div class="flex items-center gap-4 px-4">
+                    <button id="back-to-progress" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Progress
+                    </button>
+                    <div class="text-sm font-medium text-gray-700">Transcription Complete</div>
+                </div>
+                <div class="flex items-center gap-4 px-4">
+                    <button id="new-transcription-btn" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+                        <i class="fas fa-plus mr-1"></i>
+                        New Transcription
+                    </button>
+                    <button id="export-btn" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                        <i class="fas fa-download mr-1"></i>
+                        Export
+                    </button>
+                    <button id="edit-btn" class="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600">
+                        <i class="fas fa-edit mr-1"></i>
+                        Edit
+                    </button>
+                </div>
+                <div class="win11-controls">
+                    <div class="win11-control">
+                        <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
+                            <rect width="10" height="1"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <rect x="1" y="1" width="8" height="8"/>
+                        </svg>
+                    </div>
+                    <div class="win11-control close">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1">
+                            <line x1="1" y1="1" x2="9" y2="9"/>
+                            <line x1="9" y1="1" x2="1" y2="9"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex h-screen gradient-bg">
+                <!-- Left Sidebar - Audio Player -->
+                <div class="w-80 sidebar-bg border-r border-gray-300 p-4">
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Audio Player</h3>
+                        <div class="mb-4">
+                            <div id="completed-filename" class="text-sm font-medium text-gray-800 truncate">Loading...</div>
+                            <div id="completed-fileinfo" class="text-xs text-gray-500">Processing...</div>
+                        </div>
+                        
+                        <!-- Audio Controls -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <button id="play-pause-btn" class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <div class="flex-1">
+                                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                        <span id="current-time">00:00</span>
+                                        <span id="total-time">00:00</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div id="audio-progress" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <button id="speed-btn" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300">
+                                    1x
+                                </button>
+                                <button id="rewind-btn" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300">
+                                    <i class="fas fa-backward"></i>
+                                </button>
+                                <button id="forward-btn" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300">
+                                    <i class="fas fa-forward"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Transcription Stats -->
+                    <div class="bg-white rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Statistics</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Duration:</span>
+                                <span id="transcription-duration" class="font-medium">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Words:</span>
+                                <span id="transcription-words" class="font-medium">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Confidence:</span>
+                                <span id="transcription-confidence" class="font-medium">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Speakers:</span>
+                                <span id="transcription-speakers" class="font-medium">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content - Transcript -->
+                <div class="flex-1 p-6">
+                    <div class="bg-white rounded-lg p-6 h-full overflow-hidden flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-medium text-gray-800">Transcript</h2>
+                            <div class="flex items-center gap-2">
+                                <button id="search-btn" class="p-2 text-gray-600 hover:text-gray-800">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button id="speaker-toggle" class="p-2 text-gray-600 hover:text-gray-800">
+                                    <i class="fas fa-users"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Bar -->
+                        <div id="search-bar" class="mb-4 hidden">
+                            <input type="text" id="transcript-search" placeholder="Search in transcript..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400">
+                        </div>
+                        
+                        <!-- Transcript Content -->
+                        <div id="transcript-content" class="flex-1 overflow-y-auto space-y-4">
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <div>Loading transcript...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="file-input" multiple accept="audio/*,video/*" style="display: none;">
+    
+    <!-- Hidden audio element -->
+    <audio id="audio-player" style="display: none;"></audio>
+    
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <div class="text-lg font-medium text-gray-800">Processing...</div>
+            <div id="loading-text" class="text-sm text-gray-600 mt-2">Uploading file...</div>
+        </div>
+    </div>
+
+    
+
+    <!-- Scripts -->
+    <script src="/scripflow/js/app.js"></script>
+    <script src="/scripflow/js/upload.js"></script>
+    <script src="/scripflow/js/progress.js"></script>
+    <script src="/scripflow/js/transcript.js"></script>
+</body>
+</html> 

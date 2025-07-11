@@ -1,0 +1,7 @@
+
+  Id     Duration CommandLine
+  --     -------- -----------
+   1        0.163 try { . "c:\Users\varad\AppData\Local\Programs\cursor\resources\app\out\vs\workbench\cont…
+   2        0.011 Get-Process -Name "python" -ErrorAction SilentlyContinue | Stop-Process -Force
+   3        0.015 Get-Content $env:USERPROFILE\.bash_history | Out-File -FilePath "terminal_logs.txt" -Enco…
+
