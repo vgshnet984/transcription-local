@@ -15,7 +15,13 @@ This repository is optimized for running on Google Colab with GPU acceleration.
 !python colab_setup.py
 ```
 
-### 3. Upload Audio File
+### 3. Setup HuggingFace Token (Optional but Recommended)
+```python
+# For speaker diarization features
+!python setup_hf_token_colab.py
+```
+
+### 4. Upload Audio File
 ```python
 from google.colab import files
 uploaded = files.upload()  # Upload your audio file
@@ -51,9 +57,20 @@ The server will provide a public URL that you can access from any browser.
 ## Important Notes
 
 1. **GPU Required**: Make sure to enable GPU in Colab (Runtime → Change runtime type → GPU)
-2. **HuggingFace Token**: Required for speaker diarization features
+2. **HuggingFace Token**: Required for speaker diarization features (optional for basic transcription)
 3. **File Size**: Colab has upload limits, so keep audio files under 100MB
 4. **Session Time**: Colab sessions timeout after 12 hours
+
+## HuggingFace Token Setup
+
+For speaker diarization (identifying different speakers), you need a HuggingFace token:
+
+1. **Get Token**: Go to https://huggingface.co/settings/tokens
+2. **Create Token**: Click "New token" → Name it → Select "Read" role
+3. **Setup in Colab**: Run `!python setup_hf_token_colab.py`
+4. **Enter Token**: Paste your token when prompted
+
+**Note**: You can skip this step and still use basic transcription without speaker identification.
 
 ## Troubleshooting
 

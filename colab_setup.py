@@ -62,25 +62,20 @@ def main():
     if not run_command("python -c \"from src.database.init_db import init_database; init_database()\"", "Database initialization"):
         return False
     
-    # Set up HuggingFace token if provided
-    print("\n🔑 HuggingFace Token Setup")
+    # Set up HuggingFace token (optional)
+    print("\n🔑 HuggingFace Token Setup (Optional)")
     print("For speaker diarization, you'll need a HuggingFace token.")
-    print("Get one from: https://huggingface.co/settings/tokens")
+    print("You can skip this now and run 'python setup_hf_token_colab.py' later.")
     print()
     
-    token = input("Enter your HuggingFace token (or press Enter to skip): ").strip()
-    if token:
-        if not token.startswith('hf_'):
-            print("❌ Token should start with 'hf_'")
-            return False
-        
-        # Save token to config
-        config_content = f'''{{
-  "hf_token": "{token}"
-}}'''
-        with open('config.json', 'w') as f:
-            f.write(config_content)
-        print("✅ HuggingFace token saved")
+    setup_token = input("Do you want to set up HuggingFace token now? (y/N): ").strip().lower()
+    if setup_token == 'y':
+        print("Running HuggingFace token setup...")
+        if not run_command("python setup_hf_token_colab.py", "HuggingFace token setup"):
+            print("⚠️  Token setup failed, but you can continue without speaker diarization")
+    else:
+        print("✅ Skipped HuggingFace token setup")
+        print("💡 Run 'python setup_hf_token_colab.py' later to enable speaker diarization")
     
     print("\n🎉 Setup completed successfully!")
     print("\n📋 Next steps:")
