@@ -1,1 +1,0 @@
-$env:HF_TOKEN="YOUR_HF_TOKEN_HERE"; python scripts/test_diarization.py

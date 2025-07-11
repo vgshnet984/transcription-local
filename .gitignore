@@ -28,20 +28,19 @@ ENV/
 env.bak/
 venv.bak/
 
-# Environment variables
+# Environment variables and configuration
 .env
 .env.local
 .env.production
-
-# Configuration files with sensitive data
 config.json
 
-# Database
+# Database files
 *.db
 *.sqlite
 *.sqlite3
+transcription.db
 
-# Audio files
+# Audio files and uploads
 uploads/
 *.wav
 *.mp3
@@ -49,27 +48,41 @@ uploads/
 *.flac
 *.aac
 *.ogg
+temp_30s.wav
 
-# Models
+# ML Models and large files
 models/
 *.pt
 *.pth
 *.bin
+*.dll
+*.jar
+bfg-1.14.0.jar
 
-# Logs
+# Logs and output files
 logs/
 *.log
+terminal_logs.txt
+investigation_log.txt
 
-# IDE
+# Test outputs and transcripts
+transcript_output/
+transcripts/
+output/
+*.txt
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.cursorrules
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Temporary files
 *.tmp
@@ -93,4 +106,31 @@ coverage.xml
 .python-version
 
 # Docker
-.dockerignore 
+.dockerignore
+
+# Backup and investigation files
+backup_packages_before_cleanup.txt
+token name-hugging face.txt
+
+# Test files (keep only essential ones)
+test_*.py
+check_*.py
+debug_*.py
+quick_test.py
+extract_*.py
+transcribe_*.py
+faster_whisper_*.py
+fix_*.py
+
+# Documentation files (keep only essential ones)
+PROJECT_SUMMARY.txt
+TRANSCRIPTION_FIXES_SUMMARY.md
+FUTURE_OPTIMIZATION_RECOMMENDATIONS.md
+QUALITY_IMPROVEMENT_GUIDE.md
+GITHUB_UPLOAD_GUIDE.md
+RUN the project.txt
+investigation_log.txt
+
+# Colab specific
+.ipynb
+*.ipynb 
